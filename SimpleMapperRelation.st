@@ -1,5 +1,5 @@
 ROE.RASQLRelation subclass: SimpleMapperRelation [
-    | objectClass |
+    | objectClass mutex |
 
     objectClass [
 	<category: 'accessing'>
@@ -26,23 +26,59 @@ ROE.RASQLRelation subclass: SimpleMapperRelation [
 	| object |
 	object := self objectClass new.
 	aDictionary associationsDo: [:each |
-	    object write: each value to: each name asSymbol].
+	    object write: each value to: each key name asSymbol].
 	^object
     ]
 
     create [
 	<category: 'actions'>
-	self commit: self sqlCreate.
-	self discoverAttributes
+	self mutex critical: [
+	    self commit: self sqlCreate.
+	    self discoverAttributes]
     ]
 
     drop [
 	<category: 'actions'>
-	self commit: self sqlDrop.
-	attributes := nil
+	self mutex critical: [
+	    self commit: self sqlDrop.
+	    attributes := nil]
+    ]
+
+    insert: anObject [
+	<category: 'actions'>
+	self mutex critical: [
+	    anObject setId: self size + 1.
+	    self commit: (self 
+		sqlInsert: anObject mappedKeys 
+		values: anObject mappedValues)]
+    ]
+
+    update: anObject [
+	<category: 'actions'>
+	self mutex critical: [
+	    self commit: (self 
+		sqlUpdate: (self updateMappedValuesOf: anObject)
+		where: 'id = ', anObject id printString)]
+    ]
+ 
+    updateMappedValuesOf: anObject [
+	<category: 'private'>
+	^(self attributes
+	    inject: (ROE.RAUpdateTuple relation: self)
+	    into: [:nodes :attribute | 
+		nodes takeValue: 
+		    (anObject read: attribute name asSymbol) forAttribute: attribute]) nodes
+    ]
+
+    delete: anObject [
+	<category: 'actions'>
+	    self mutex critical: [
+		self commit: (self 
+		    sqlDeleteWhere: ' id = ', self id printString)]
     ]
 
     commit: aString [
+	<category: 'actions'>
 	connection do: 'BEGIN TRANSACTION'.
 	connection do: aString.
 	connection do: 'COMMIT'
@@ -90,5 +126,10 @@ ROE.RASQLRelation subclass: SimpleMapperRelation [
 	<category: 'private'>
 	^self table discoverAttributes collect: [:each | 
 	    ROE.RASimpleAttribute named: each name relation: self]
+    ]
+
+    mutex [
+	<category: 'private'>
+	^mutex ifNil: [mutex := Semaphore forMutualExclusion]
     ]
 ]

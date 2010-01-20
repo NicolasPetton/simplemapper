@@ -105,32 +105,23 @@ Object subclass: MappedObject [
 
     delete [
 	<category: 'actions'>
-	self hasId ifTrue: [
-	    self relation commit: 
-		(self relation sqlDeleteWhere: ' id = ', self id printString)]
+	self isNew isFalse: [
+	    self relation delete: self]
     ]
 
     insert [
-	"Should use a mutex for that. What about delegating it to the relation?"
 	<category: 'private'>
-	id := self relation size + 1.
-	self relation commit: (self relation 
-	    sqlInsert: self mappedKeys values: self mappedValues).
+	self relation insert: self
     ]
 
     update [
 	<category: 'private'>
-	self relation basicExec: (self relation
-	    sqlUpdate: self updateMappedValues where: 'id=', id asString)
+	self relation update: self
     ]
     
-    updateMappedValues [
+    setId: anInteger [
 	<category: 'private'>
-	^((self relation attributes)
-	    inject: (ROE.RAUpdateTuple relation: self relation)
-	    into: [:nodes :attribute | 
-		nodes takeValue: 
-		    (self read: attribute name asSymbol) forAttribute: attribute]) nodes
+	id := anInteger
     ]
 
     read: aSymbol [
