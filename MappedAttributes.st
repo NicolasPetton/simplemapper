@@ -12,50 +12,96 @@ Object subclass: MappedAttribute [
 	key := aString
     ]
 
+    name [
+	<category: 'accessing'>
+	^self key asString
+    ]
+
     key [
 	<category: 'accessing'>
 	^key
     ]
 
-    value [
+    sqlType [
 	<category: 'accessing'>
+	^nil
+    ]
+
+    write: aValue to: anObject [
+	<category: 'mapping'>
+	self subclassResponsibility
+    ]
+
+    readFrom: anObject [
+	<category: 'mapping'>
 	self subclassResponsibility
     ]
 ]
 
 MappedAttribute subclass: SQLMappedAttribute [
-    | type |
+    | sqlType |
 
-    type [
+    sqlType: aString [
 	<category: 'accessing'>
-	^type
+	sqlType := aString
     ]
 
-    type: aString [
+    sqlType [
 	<category: 'accessing'>
-	type := aString
+	^sqlType
     ]
 
-    value [
-	<category: 'accessing'>
-	^self type
+    write: aValue to: anObject [
+	<category: 'mapping'>
+	anObject write: aValue to: self key
+    ]
+
+    readFrom: anObject [
+	<category: 'mapping'>
+	^anObject read: self key
     ]
 ]
 
 MappedAttribute subclass: RelationMappedAttribute [
-    | class |
+    | objectClass |
 
-    class [
+    objectClass [
 	<category: 'accessing'>
-	^class
+	^objectClass
     ]
 
-    class: aClass [
+    objectClass: aClass [
 	<category: 'accessing'>
-	class := aClass
+	objectClass := aClass
     ]
 ]
 
-RelationMappedAttribute subclass: ToOneMappedAttribute []
+RelationMappedAttribute subclass: ToOneMappedAttribute [
+    
+    name [
+	<category: 'accessing'>
+	^self class tableName, 'ID'
+    ]
 
-RelationMappedAttribute subclass: ToManyMappedAttribute []
+    sqlType [
+	<category: 'accessing'>
+	^'integer'
+    ]
+
+    write: aValue to: anObject [
+	<category: 'mapping'>
+	anObject 
+	    write: (objectClass atId: aValue)
+	    to: self key
+    ]
+
+    readFrom: anObject [
+	<category: 'mapping'>
+	^(anObject read: self key) id
+    ]
+]
+
+RelationMappedAttribute subclass: ToManyMappedAttribute [
+    
+    
+]

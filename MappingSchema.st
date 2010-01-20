@@ -20,6 +20,19 @@ Object subclass: MappingSchema [
 	    mappedAttributes := OrderedCollection new]
     ]
 
+    at: aSymbol [
+	<category: 'accessing'>
+	^self mappedAttributes 
+	    detect: [:each | each key = aSymbol]
+	    ifNone: [nil]
+    ]
+
+    valuesFrom: anObject [
+	<category: 'accessing'>
+	^self mappedAttributes collect: [:each |
+	    each readFrom: anObject]
+    ]
+
     keys [
 	<category: 'accessing'>
 	^self mappedAttributes collect: [:each | each key]
@@ -28,18 +41,18 @@ Object subclass: MappingSchema [
     hasOne: aSQLTypeString accessor: aSymbol [
 	<category: 'mapping'>
 	self mappedAttributes add: ((SQLMappedAttribute key: aSymbol)
-	    type: aSQLTypeString)
+	    sqlType: aSQLTypeString)
     ]
 
     hasMany: aClass accessor: aSymbol [
 	<category: 'mapping'>
 	self mappedAttributes add: ((ToManyMappedAttribute key: aSymbol)
-	    class: aClass)
+	    otherClass: aClass)
     ]
 
     belongsTo: aClass accessor: aSymbol [
 	<category: 'mapping'>
 	self mappedAttributes add: ((ToOneMappedAttribute key: aSymbol)
-	    class: aClass)
+	    otherClass: aClass)
     ]
 ]

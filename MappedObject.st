@@ -40,17 +40,17 @@ Object subclass: MappedObject [
 	]
 
 	load: aRelation [
-	    <category: 'actions'>
+	    <category: 'querying'>
 	    ^aRelation asSingleMappedCollection asArray
 	]
 
-	loadAll [
-	    <category: 'actions'>
+	all [
+	    <category: 'querying'>
 	    ^self load: self relation
 	]
 
-	loadId: anInteger [
-	    <category: 'actions'>
+	atId: anInteger [
+	    <category: 'querying'>
 	    | array |
 	    array := self load: (self relation select: [:each |
 		each id = anInteger]).
@@ -58,22 +58,31 @@ Object subclass: MappedObject [
 		ifTrue: [nil]
 		ifFalse: [array first]
 	]
+
+	select: aBlock [
+	    <category: 'querying'>
+	    ^self load: (self relation select: aBlock)
+	]
+
+	detect: aBlock [
+	    <category: 'querying'>
+	    ^self detect: aBlock ifNone: [nil]
+	]
+
+	detect: aBlock ifNone: anotherBlock [
+	    <category: 'querying'>
+	    ^self load: (self relation detect: aBlock ifNone: anotherBlock)
+	]
     ]
 
     mappingSchema [
 	<category: 'accessing'>
 	^self class mappingSchema
     ]
-   
-    mappedKeys [
-	<category: 'accessing'>
-	^self mappingSchema keys
-    ]
 
-    mappedValues [
+    relation [
 	<category: 'accessing'>
-	^self mappedKeys collect: [:each |
-	    self read: each]
+	^self class relation
     ]
 
     id [
@@ -98,15 +107,35 @@ Object subclass: MappedObject [
 
     save [
 	<category: 'actions'>
+	self onBeforeSave.
 	self isNew
 	    ifTrue: [self insert]
-	    ifFalse: [self update]
+	    ifFalse: [self update].
+	self onAfterSave
     ]
 
     delete [
 	<category: 'actions'>
+	self onBeforeDelete.
 	self isNew isFalse: [
-	    self relation delete: self]
+	    self relation delete: self].
+	slef onAfterDelete
+    ]
+
+    onBeforeSave [
+	<category: 'events'>
+    ]
+
+    onAfterSave [
+	<category: 'events'>
+    ]
+
+    onBeforeDelete [
+	<category: 'events'>
+    ]
+
+    onAfterDelete [
+	<category: 'events'>
     ]
 
     insert [

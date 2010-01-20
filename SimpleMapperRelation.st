@@ -26,7 +26,8 @@ ROE.RASQLRelation subclass: SimpleMapperRelation [
 	| object |
 	object := self objectClass new.
 	aDictionary associationsDo: [:each |
-	    object write: each value to: each key name asSymbol].
+	    (object mappingSchema at: each key name asSymbol)
+		write: each value to: object].
 	^object
     ]
 
@@ -49,8 +50,8 @@ ROE.RASQLRelation subclass: SimpleMapperRelation [
 	self mutex critical: [
 	    anObject setId: self size + 1.
 	    self commit: (self 
-		sqlInsert: anObject mappedKeys 
-		values: anObject mappedValues)]
+		sqlInsert: anObject mappingSchema keys
+		values: (anObject mappingSchema valuesFrom: anObject))]
     ]
 
     update: anObject [
@@ -103,10 +104,11 @@ ROE.RASQLRelation subclass: SimpleMapperRelation [
 	    nextPutAll: 'CREATE TABLE ';
 	    nextPutAll: self name;
 	    nextPutAll: ' ('.
-	self objectClass mappingSchema mappedAttributes do: [:each |
-		stream 
-		    nextPutAll: each key asString;
-		    nextPutAll: ' ', each value]
+	(self objectClass mappingSchema mappedAttributes 
+	    select: [:each | each sqlType notNil])
+		do: [:each | stream 
+		    nextPutAll: each name ;
+		    nextPutAll: ' ', each sqlType]
 	    separatedBy: [stream nextPutAll: ', '].
 	stream nextPut: $).
 	^stream contents
@@ -115,11 +117,6 @@ ROE.RASQLRelation subclass: SimpleMapperRelation [
     sqlDrop [
 	<category: 'private'>
 	^'DROP TABLE ', self name
-    ]
-
-    sqlMigrate [
-	<category: 'private'>
-	"should be a subclass responsibility"
     ]
 
     discoverAttributes [
