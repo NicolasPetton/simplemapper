@@ -80,7 +80,7 @@ RelationMappedAttribute subclass: ToOneMappedAttribute [
     
     name [
 	<category: 'accessing'>
-	^self class tableName, 'ID'
+	^self objectClass tableName, 'ID'
     ]
 
     sqlType [
@@ -91,13 +91,13 @@ RelationMappedAttribute subclass: ToOneMappedAttribute [
     write: aValue to: anObject [
 	<category: 'mapping'>
 	anObject 
-	    write: (objectClass atId: aValue)
+	    write: (self objectClass atId: aValue)
 	    to: self key
     ]
 
     readFrom: anObject [
 	<category: 'mapping'>
-	^(anObject read: self key) id
+	^(anObject read: self key) ifNotNil: [:object | object id]
     ]
 ]
 

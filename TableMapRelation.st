@@ -1,4 +1,4 @@
-ROE.RASQLRelation subclass: SimpleMapperRelation [
+ROE.RASQLRelation subclass: TableMapRelation [
     | objectClass mutex |
 
     objectClass [
@@ -13,7 +13,11 @@ ROE.RASQLRelation subclass: SimpleMapperRelation [
 
     table [
 	<category: 'accessing'>
-	^connection tableAt: self name
+	^connection 
+	    tableAt: self name 
+	    ifAbsent: [
+		self create. 
+		connection tableAt: self name]
     ]
 
     size [
@@ -49,9 +53,7 @@ ROE.RASQLRelation subclass: SimpleMapperRelation [
 	<category: 'actions'>
 	self mutex critical: [
 	    anObject setId: self size + 1.
-	    self commit: (self 
-		sqlInsert: anObject mappingSchema keys
-		values: (anObject mappingSchema valuesFrom: anObject))]
+	    self addValues: (anObject mappingSchema valuesFrom: anObject)]
     ]
 
     update: anObject [
@@ -74,15 +76,7 @@ ROE.RASQLRelation subclass: SimpleMapperRelation [
     delete: anObject [
 	<category: 'actions'>
 	    self mutex critical: [
-		self commit: (self 
-		    sqlDeleteWhere: ' id = ', self id printString)]
-    ]
-
-    commit: aString [
-	<category: 'actions'>
-	connection do: 'BEGIN TRANSACTION'.
-	connection do: aString.
-	connection do: 'COMMIT'
+		self deleteFor: [:each | each id = anObject id]]
     ]
 
     basicExec: aString [
@@ -95,8 +89,44 @@ ROE.RASQLRelation subclass: SimpleMapperRelation [
 	^self table basicQuery: aString
     ]
 
+    commit: aString [
+	<category: 'private'>
+	self subclassResponsibility
+    ]
+
     sqlCreate [
-	"Should be a subclass responsibility"
+	<category: 'private'>
+	self subclassResponsibility
+    ]
+
+    sqlDrop [
+	<category: 'private'>
+	self subclassResponsibility
+    ]
+
+    discoverAttributes [
+	<category: 'private'>
+	^self table discoverAttributes collect: [:each | 
+	    ROE.RASimpleAttribute named: each name relation: self]
+    ]
+
+    mutex [
+	<category: 'private'>
+	^mutex ifNil: [mutex := Semaphore forMutualExclusion]
+    ]
+]
+
+TableMapRelation subclass: SQLiteTableMapRelation [
+ 
+    commit: aString [
+	<category: 'actions'>
+	connection 
+	    do: 'BEGIN TRANSACTION';
+	    do: aString;
+	    do: 'COMMIT'
+    ]
+   
+    sqlCreate [
 	<category: 'private'>
 	| stream |
 	stream := WriteStream on: ''.
@@ -118,15 +148,19 @@ ROE.RASQLRelation subclass: SimpleMapperRelation [
 	<category: 'private'>
 	^'DROP TABLE ', self name
     ]
+]
 
-    discoverAttributes [
-	<category: 'private'>
-	^self table discoverAttributes collect: [:each | 
-	    ROE.RASimpleAttribute named: each name relation: self]
+
+DBI.Connection extend [
+    
+    tableMapRelationClass [
+	self subclassResponsibility
     ]
+]
 
-    mutex [
-	<category: 'private'>
-	^mutex ifNil: [mutex := Semaphore forMutualExclusion]
+DBI.SQLite.SQLiteConnection extend [
+    
+    tableMapRelationClass [
+	^SQLiteTableMapRelation
     ]
 ]

@@ -119,7 +119,7 @@ Object subclass: MappedObject [
 	self onBeforeDelete.
 	self isNew isFalse: [
 	    self relation delete: self].
-	slef onAfterDelete
+	self onAfterDelete
     ]
 
     onBeforeSave [

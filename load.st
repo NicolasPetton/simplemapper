@@ -3,9 +3,9 @@ Eval [
     FileStream fileIn: 'Session.st'.
     FileStream fileIn: 'MappedAttributes.st'.
     FileStream fileIn: 'MappingSchema.st'.
-    FileStream fileIn: 'SimpleMapperRelation.st'.
+    FileStream fileIn: 'TableMapRelation.st'.
     FileStream fileIn: 'MappedObject.st'.
-    FileStream fileIn: 'Foo.st'.
+    FileStream fileIn: 'Tests.st'.
 
     Session current connection: (DBI.Connection connect: 'dbi:SQLite:dbname=test.dat' user: nil password: nil).
 ]

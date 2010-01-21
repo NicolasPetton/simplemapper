@@ -47,12 +47,12 @@ Object subclass: MappingSchema [
     hasMany: aClass accessor: aSymbol [
 	<category: 'mapping'>
 	self mappedAttributes add: ((ToManyMappedAttribute key: aSymbol)
-	    otherClass: aClass)
+	    objectClass: aClass)
     ]
 
     belongsTo: aClass accessor: aSymbol [
 	<category: 'mapping'>
 	self mappedAttributes add: ((ToOneMappedAttribute key: aSymbol)
-	    otherClass: aClass)
+	    objectClass: aClass)
     ]
 ]
