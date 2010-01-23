@@ -23,7 +23,7 @@ PersonMock subclass: ChildMock [
     ]
 
     mother [^mother]
-    moether: aMotherMock [mother := aMotherMock]
+    mother: aMotherMock [mother := aMotherMock]
 ]
 
 PersonMock subclass: MotherMock [
@@ -34,6 +34,6 @@ PersonMock subclass: MotherMock [
 	    hasMany: ChildMock accessor: #children
     ]
 
-    children [^children ifNil: [#()]]
+    children [^children ifNil: [children := #()]]
     children: aCollection [children := aCollection]
 ]

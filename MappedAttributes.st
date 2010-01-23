@@ -78,14 +78,14 @@ MappedAttribute subclass: RelationMappedAttribute [
 
 RelationMappedAttribute subclass: ToOneMappedAttribute [
     
-    name [
-	<category: 'accessing'>
-	^self objectClass tableName, 'ID'
-    ]
-
     sqlType [
 	<category: 'accessing'>
 	^'integer'
+    ]
+
+    name [
+	<category: 'accessing'>
+	^self objectClass tableName, 'ID'
     ]
 
     write: aValue to: anObject [
@@ -103,5 +103,12 @@ RelationMappedAttribute subclass: ToOneMappedAttribute [
 
 RelationMappedAttribute subclass: ToManyMappedAttribute [
     
-    
+    write: aValue to: anObject [
+	<category: 'mapping'>
+	anObject
+	    write: (self objectClass load: 
+		(self objectClass relation select: [:each | 
+		    (each at: anObject class tableName, 'ID') = anObject id]))
+	    to: self key
+    ]
 ]

@@ -34,7 +34,7 @@ Object subclass: Session [
 	<category: 'accessing'>
 	^mutex critical: [
 	    relations at: aString ifAbsentPut: [
-		self connection tableMapRelationClass
+		self connection mapperRelationClass
 		    name: aString 
 		    connection: self connection]]
     ]

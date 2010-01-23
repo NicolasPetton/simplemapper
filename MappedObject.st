@@ -58,21 +58,6 @@ Object subclass: MappedObject [
 		ifTrue: [nil]
 		ifFalse: [array first]
 	]
-
-	select: aBlock [
-	    <category: 'querying'>
-	    ^self load: (self relation select: aBlock)
-	]
-
-	detect: aBlock [
-	    <category: 'querying'>
-	    ^self detect: aBlock ifNone: [nil]
-	]
-
-	detect: aBlock ifNone: anotherBlock [
-	    <category: 'querying'>
-	    ^self load: (self relation detect: aBlock ifNone: anotherBlock)
-	]
     ]
 
     mappingSchema [

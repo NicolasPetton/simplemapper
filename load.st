@@ -3,7 +3,7 @@ Eval [
     FileStream fileIn: 'Session.st'.
     FileStream fileIn: 'MappedAttributes.st'.
     FileStream fileIn: 'MappingSchema.st'.
-    FileStream fileIn: 'TableMapRelation.st'.
+    FileStream fileIn: 'MapperRelation.st'.
     FileStream fileIn: 'MappedObject.st'.
     FileStream fileIn: 'Tests.st'.
 
